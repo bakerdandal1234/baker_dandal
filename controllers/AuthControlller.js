@@ -4,6 +4,11 @@ var jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator");
 
 
+const { sendVerificationEmail } = require('../mails');
+
+
+
+
 const get_welcome=(req, res) => {
     res.render("welcome");
   }
@@ -18,32 +23,38 @@ const get_welcome=(req, res) => {
     res.cookie("jwt", "", { maxAge: 1 });
     res.redirect("/");
   }
-const ok=  async (req, res) => {
+  const ok = async (req, res) => {
     try {
-  
-  
       const objError = validationResult(req);
       console.log(objError.errors);
       if (objError.errors.length > 0) {
-        return res.json({ validationError: objError.errors })
+        return res.json({ validationError: objError.errors });
       }
   
-      const isCurrentEmail = await Auth.findOne({ email: req.body.email })
+      const isCurrentEmail = await Auth.findOne({ email: req.body.email });
       if (isCurrentEmail) {
-        return res.json({ existEmail: "Email already exist" })
+        return res.json({ existEmail: "Email already exist" });
       }
   
+      const newUser = await Auth.create(req.body);
+      const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
   
-      const newUser = await Auth.create(req.body)
-      var token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET_KEY);
-  
-  
+      // أرسل الرد الأول فقط
       res.cookie("jwt", token, { httpOnly: true, maxAge: 86400000 });
-      res.json({ id: newUser._id })
+      res.json({
+        message: 'Registration successful! Please check your email for verification.',
+        id: newUser._id
+      });
+  
+      // بعد إرسال الرد، يمكنك الآن إرسال البريد الإلكتروني
+      await sendVerificationEmail(newUser);
+  
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      res.status(500).send("An error occurred");
     }
-  }
+  };
+  
 
   const kk=async (req, res) => {
     try {
@@ -68,4 +79,43 @@ const ok=  async (req, res) => {
     }
   }
 
-  module.exports={ok,kk,get_welcome,get_login,get_signup,get_signout}
+
+
+// verification email after login 
+const verifyEmail = async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const userId = decoded.id;
+
+    // Find and update the user in one step
+    const user = await Auth.findByIdAndUpdate(userId, { isVerified: true }, { new: true });
+
+    if (!user) {
+      return res.status(404).send( { message: 'User not found' });
+    }
+
+    // Check if the update was successful
+    if (user.isVerified) {
+      return  res.redirect('/home');;
+      
+    } else {
+      return res.status(500).send({ message: 'Failed to update verification status.' });
+    }
+    
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(400).send( { message: 'Invalid or expired token' });
+  }
+};
+
+
+
+ 
+
+
+
+
+  module.exports={ok,kk,get_welcome,get_login,get_signup,get_signout,verifyEmail}

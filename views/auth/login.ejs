@@ -104,48 +104,51 @@
 
 
 
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+
+
+
+
+
+<div   class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <form id="updatepassword"   enctype="multipart/form-data" class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">reset password</h1>
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Change Profile Image</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="updatepassword" action="/update-password" method="post" enctype="multipart/form-data" class="modal-content">
-        <div class="mb-3">
-          <label for="exampleInputEmail" class="form-label"
-            > please enter your Email address</label
-          >
-          <input
-            name="email"
-            type="email"
-            class="form-control"
-            id="exampleInputEmail"
-            aria-describedby="emailHelp"
-          />
-          <p id="email"></p>
-        </div>
-        <div class="mb-3">
-          <label for="exampleInputPassword" class="form-label"
-            > new Password</label
-          >
-          <input
-            name="password"
-            type="password"
-            class="form-control"
-            id="exampleInputPassword"
-          />
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Send</button>
-        </div>
-      </form>
+      <div class="mb-3">
+        <label for="exampleInputEmail" class="form-label"
+          >Email address</label
+        >
+        <input
+          name="text"
+          type="email"
+          class="form-control"
+          id="exampleInputEmail"
+          aria-describedby="emailHelp"
+        />
+        <p id="email"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Send</button>
+      </div>
+
+      </div>
+
+      
+
+    
+
+
      
-    </div>
+    </form>
   </div>
 </div>
+
+
+
+
 
 
 
@@ -171,11 +174,12 @@
         if(data.notFoundEmail){
           emailError.textContent=data.notFoundEmail
         }
+        // var a=document.getElementById('passwordError')
         if(data.passwordError){
           passwordError.textContent=data.passwordError
         }
         if(data.id){
-          location.assign("/home")
+          location.assign("/verify")
         }
         })
 
@@ -184,11 +188,10 @@
         updatepassword.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const res = await fetch("/update-password", {
+        const res = await fetch("/forget-password", {
           method: "POST",
           body: JSON.stringify({
             email: exampleInputEmail.value,
-            password: exampleInputPassword.value,
           }),
           headers: { "Content-Type": "application/json" },
         });
@@ -200,9 +203,9 @@
         }
        
 
-       if (data.success==true) {
-        location.assign("/")
-  }
+  //      if (data.success==true) {
+  //       location.assign("/verify")
+  // }
         })
         
     </script>

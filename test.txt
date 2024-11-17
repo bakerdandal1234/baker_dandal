@@ -37,3 +37,5 @@
     __v: 0
   }
 ]
+ const newpassword=await securePassword(req.body.password)
+ const useerData= await Auth.updateOne({email:req.body.email},{$set:{password:newpassword}}) 
