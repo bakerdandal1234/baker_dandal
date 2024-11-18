@@ -37,7 +37,7 @@ const get_welcome=(req, res) => {
       }
   
       const newUser = await Auth.create(req.body);
-      const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+      const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET_KEY);
   
       // أرسل الرد الأول فقط
       res.cookie("jwt", token, { httpOnly: true, maxAge: 86400000 });
@@ -46,7 +46,6 @@ const get_welcome=(req, res) => {
         id: newUser._id
       });
   
-      // بعد إرسال الرد، يمكنك الآن إرسال البريد الإلكتروني
       await sendVerificationEmail(newUser);
   
     } catch (error) {
@@ -66,7 +65,7 @@ const get_welcome=(req, res) => {
         if (match) {
           var token = jwt.sign({ id: loginUser._id }, process.env.JWT_SECRET_KEY);
           res.cookie("jwt", token, { httpOnly: true, maxAge: 86400000 });
-          res.json({ id: loginUser._id })
+          res.json({ id: loginUser._id,message:"check your mailbox to continue" })
         } else {
           res.json({
             passwordError: `Incorrect password for ${req.body.email}`,
@@ -81,41 +80,9 @@ const get_welcome=(req, res) => {
 
 
 
-// verification email after login 
-const verifyEmail = async (req, res) => {
-  const { token } = req.query;
-
-  try {
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const userId = decoded.id;
-
-    // Find and update the user in one step
-    const user = await Auth.findByIdAndUpdate(userId, { isVerified: true }, { new: true });
-
-    if (!user) {
-      return res.status(404).send( { message: 'User not found' });
-    }
-
-    // Check if the update was successful
-    if (user.isVerified) {
-      return  res.redirect('/home');;
-      
-    } else {
-      return res.status(500).send({ message: 'Failed to update verification status.' });
-    }
-    
-  } catch (error) {
-    console.error("Verification error:", error);
-    res.status(400).send( { message: 'Invalid or expired token' });
-  }
-};
-
-
-
- 
 
 
 
 
-  module.exports={ok,kk,get_welcome,get_login,get_signup,get_signout,verifyEmail}
+
+  module.exports={ok,kk,get_welcome,get_login,get_signup,get_signout}

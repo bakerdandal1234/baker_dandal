@@ -1,19 +1,28 @@
 const express = require("express");
 const router = express.Router();
+
 var jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const { sendVerificationEmail } = require('../mails');
+
 const bcryptjs = require("bcryptjs");
 const { check, validationResult } = require("express-validator");
 
 const Auth = require("../models/signupSchema");
-const AuthControlller=require("../controllers/AuthControlller")
 
+
+const AuthControlller=require("../controllers/AuthControlller")
 const userController = require("../controllers/userController");
+
 
 
 const {  requireAuth } = require("../middleware/middleware")
 const { checkIfUser } = require("../middleware/middleware")
+const { verifyEmail } = require("../middleware/middleware")
+
+
+
+const multer  = require('multer')
+const upload = multer({storage: multer.diskStorage({})});
 
 
 
@@ -26,9 +35,8 @@ const { checkIfUser } = require("../middleware/middleware")
 router.get("*", checkIfUser)
 router.post("*",checkIfUser)
 
-router.get("/verify",(req,res)=>{
-  res.render("auth/verificationEmail")
-})
+
+
 
 const securePassword=async(password)=>{
   try{
@@ -48,7 +56,7 @@ router.post("/forget-password", async (req, res) => {
     if(!checkUser){
       return res.json({ success: false, msg: "user not found pleaser register" });
     }
-    var token = jwt.sign({ id: checkUser._id }, process.env.JWT_SECRET_KEY,{expiresIn:"1h"});
+    var token = jwt.sign({ id: checkUser._id }, process.env.JWT_SECRET_KEY);
 
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
@@ -103,15 +111,52 @@ const {password}=req.body
   }
 })
 
-router.get('/reset-password/:token', (req, res) => {
-  const {token} = req.params;
+router.get('/reset-password', (req, res) => {
+  const { token } = req.query;  // Access token from query string
 
   try {
-    const decoded = jwt.verify(token,process.env.JWT_SECRET_KEY ); 
-    res.render('auth/reset-password', { token: token }); 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    res.render('auth/reset-password', { token: token });
   } catch (error) {
     console.error("JWT Verification Error: ", error);
-    res.status(400).send('Invalid or expired token');
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(400).send('The token has expired. Please request a new one.');
+    }
+    return res.status(400).send('Invalid token');
+  }
+});
+
+
+
+// Verification route
+router.get("/verify-email", async (req, res) => {
+  const token = req.query.token;
+
+  if (!token) {
+    return res.render("auth/verificationEmail", { message: "Invalid or expired token." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    const user = await Auth.findById(decoded.id);
+
+    if (!user) {
+      return res.render("auth/verificationEmail", { message: "User not found." });
+    }
+
+    if (user.isVerified) {
+      return res.render("auth/verificationEmail", { message: "Email is already verified." });
+    }
+
+    user.isVerified = true;
+    await user.save();
+
+    res.render("auth/verificationEmail", { message: "Email verified successfully! You can now log in." });
+
+  } catch (error) {
+    console.error('Verification error:', error);
+    res.render("auth/verificationEmail", { message: "Invalid or expired token." });
   }
 });
 
@@ -124,33 +169,12 @@ router.get('/reset-password/:token', (req, res) => {
 
 
 
-
-
-
-
-const multer  = require('multer')
-const upload = multer({storage: multer.diskStorage({})});
-
-
 router.post('/update-profile', upload.single('avatar'),userController.upload_image )
 
 router.get("/",AuthControlller.get_welcome);
 
 
 router.get("/login",AuthControlller.get_login);
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -169,14 +193,18 @@ router.post("/login",AuthControlller.kk);
 
 
 
-router.get('/verify-email', AuthControlller.verifyEmail);
 
 
-router.get("/home" ,requireAuth, userController.user_index_get);
+
+
+
+
+
+router.get("/home" ,requireAuth,verifyEmail, userController.user_index_get);
 
 router.get("/edit/:id",requireAuth,  userController.user_edit_get);
 
-router.get("/view/:id",requireAuth,  userController.user_view_get);
+router.get("/view/:id", requireAuth, userController.user_view_get);
 
 router.post("/search", userController.user_search_post);
 

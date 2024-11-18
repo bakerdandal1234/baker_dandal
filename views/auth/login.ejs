@@ -80,6 +80,7 @@
             />
             <P id="passwordError"></P>
           </div>
+          <p id="check"></p>
           <div class="mb-3 form-check">
             <input
               type="checkbox"
@@ -89,6 +90,7 @@
             <label class="form-check-label" for="exampleCheck1"
               >Check me out</label
             >
+            
           </div>
           <button type="submit" class="btn btn-primary">Log in</button>
           <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -170,7 +172,7 @@
         });
 
         const data = await res.json();
-        console.log(data)
+       
         if(data.notFoundEmail){
           emailError.textContent=data.notFoundEmail
         }
@@ -178,8 +180,11 @@
         if(data.passwordError){
           passwordError.textContent=data.passwordError
         }
+        if(data.message){
+          check.textContent=data.message
+        }
         if(data.id){
-          location.assign("/verify")
+          location.assign("/home")
         }
         })
 

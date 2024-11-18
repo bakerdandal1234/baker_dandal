@@ -55,13 +55,9 @@
       <%- include('./header.ejs',{currentPage : "verify-email"}) %>
 
       <main class="px-3">
-       
-        <% if (user.isVerified === false) { %>
-          <p>Please check your mailbox to verify your email</p>
-        <% } else { %>
-          <p>Your email is already verified, you can continue</p>
-          <a href="/home">go to home page</a>
-        <% } %>
+        <h1>Email Verification</h1>
+        <p><%= message %></p>
+        <a href="/login">Go to Login</a>
       </main>
 
       <footer class="mt-auto text-white-50">
