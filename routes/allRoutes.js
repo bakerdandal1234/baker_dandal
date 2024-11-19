@@ -202,9 +202,9 @@ router.post("/login",AuthControlller.kk);
 
 router.get("/home" ,requireAuth,verifyEmail, userController.user_index_get);
 
-router.get("/edit/:id",requireAuth,  userController.user_edit_get);
+router.get("/edit/:id",requireAuth,verifyEmail,  userController.user_edit_get);
 
-router.get("/view/:id", requireAuth, userController.user_view_get);
+router.get("/view/:id", requireAuth,verifyEmail, userController.user_view_get);
 
 router.post("/search", userController.user_search_post);
 
