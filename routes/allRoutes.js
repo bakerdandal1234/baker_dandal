@@ -69,7 +69,7 @@ router.post("/forget-password", async (req, res) => {
     });
     const verificationLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: 'smtp.gmail.com',
       to: email,
       subject: 'Verify Your Email Address',
       html: `<p>Please verify your email by clicking on the link below:</p><a href="${verificationLink}">${verificationLink}</a>`,
