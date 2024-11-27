@@ -2,9 +2,9 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT, // جرّب 587 أيضًا إذا لم يعمل
-  secure: false, // يجب أن يكون false لأن SSL غير مستخدم
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
