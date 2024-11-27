@@ -16,7 +16,7 @@ async function sendVerificationEmail(user) {
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY,);
   const verificationLink = `${process.env.BASE_URL}/verify-email?token=${token}`;
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: 'smtp.gmail.com',
     to: user.email,
     subject: 'Verify Your Email Address',
     html: `<p>Please verify your email by clicking on the link below:</p><a href="${verificationLink}">${verificationLink}</a>`,
