@@ -59,6 +59,7 @@ router.post("/forget-password", async (req, res) => {
     var token = jwt.sign({ id: checkUser._id }, process.env.JWT_SECRET_KEY);
 
     const transporter = nodemailer.createTransport({
+      service:"gmail",
       host: 'smtp.gmail.com',
       port: 465, 
       secure: true, 
